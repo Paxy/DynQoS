@@ -1,0 +1,13 @@
+{
+    "db_ip": "192.168.100.16",
+    "db_user": "qos",
+    "db_pass": "dynqos",
+    "db_name": "qos",
+
+    "car_switch_manage": "192.168.100.18:6640",
+	"car_switch_control": "192.168.100.18:6633",
+    "car_qos_uuid": "48422d31-a11f-4b65-a48f-55d5f97eae6f",
+    "base_switch_manage": "192.168.100.251:6640",
+	"base_switch_control": "192.168.100.251:6633",
+    "base_qos_uuid": "d38a7f54-e060-400b-9f5f-ea2a4ee459d9"
+}
