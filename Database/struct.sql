@@ -23,12 +23,23 @@ DROP TABLE IF EXISTS `services`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `services` (
-  `vlan` int(11) NOT NULL,
+  `sid` int(11) NOT NULL DEFAULT '0',
   `download` int(11) NOT NULL,
   `upload` int(11) NOT NULL,
-  PRIMARY KEY (`vlan`)
+  `ip` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`sid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `services`
+--
+
+LOCK TABLES `services` WRITE;
+/*!40000 ALTER TABLE `services` DISABLE KEYS */;
+INSERT INTO `services` VALUES (11111,10000000,1000000,'192.168.110.254'),(33333,500000,4000000,'192.168.130.254');
+/*!40000 ALTER TABLE `services` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -39,4 +50,4 @@ CREATE TABLE `services` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-07-23  9:10:34
+-- Dump completed on 2021-11-19 12:12:35
