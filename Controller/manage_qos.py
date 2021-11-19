@@ -41,15 +41,15 @@ class QueueControll:
         self.car_switch_control = car_switch_control
         self.bs_switch_control = bs_switch_control
         
-    def add_flows(self):
-        add_car_flow = "ovs-ofctl add-flow tcp:" + self.car_switch_control + " dl_vlan=" + self.queue_num + ",actions=set_queue:" + self.queue_num + ",normal"
-        add_bs_flow = "ovs-ofctl add-flow tcp:" + self.bs_switch_control + " dl_vlan=" + self.queue_num + ",actions=set_queue:" + self.queue_num + ",normal"
+    def add_flows(self, service_ip):
+        add_car_flow = "ovs-ofctl add-flow tcp:" + self.car_switch_control + " dl_type=0x0800,nw_dst=" + service_ip + ",actions=set_queue:" + self.queue_num + ",normal"
+        add_bs_flow = "ovs-ofctl add-flow tcp:" + self.bs_switch_control + " dl_type=0x0800,nw_src=" + service_ip + ",actions=set_queue:" + self.queue_num + ",normal"
         os.system(add_car_flow)
         os.system(add_bs_flow)
         
-    def del_flows(self):
-        del_car_flow = "ovs-ofctl del-flows tcp:" + self.car_switch_control + " dl_vlan=" + self.queue_num
-        del_bs_flow = "ovs-ofctl del-flows tcp:" + self.bs_switch_control + " dl_vlan=" + self.queue_num
+    def del_flows(self, service_ip):
+        del_car_flow = "ovs-ofctl del-flows tcp:" + self.car_switch_control + " dl_type=0x0800,nw_dst=" + service_ip
+        del_bs_flow = "ovs-ofctl del-flows tcp:" + self.bs_switch_control + " dl_type=0x0800,nw_src=" + service_ip
         os.system(del_car_flow)
         os.system(del_bs_flow)
 
@@ -68,7 +68,7 @@ class QueueControll:
     def fetch_queue_from_db(self, db_ip, db_user, db_pass, db_name):
         self.db_connection = mysql.connect(host=db_ip, user=db_user, passwd=db_pass, database=db_name)
         self.db_cursor = self.db_connection.cursor()
-        self.db_cursor.execute("SELECT download, upload FROM services WHERE vlan = " + self.queue_num)
+        self.db_cursor.execute("SELECT download, upload, ip FROM services WHERE sid = " + self.queue_num)
         queue_result = self.db_cursor.fetchone()
         self.db_cursor.close()
         self.db_connection.close()
@@ -81,12 +81,12 @@ class QueueControll:
             if self.car_queue.queue_uuid is None:
                 pass
             else:
-                self.del_flows()
+                self.del_flows(self.latest_query_result[2])
                 self.del_queues()
         else:
             if self.car_queue.queue_uuid is None:
                 self.add_queues(str(query_result[1]), str(query_result[0]))
-                self.add_flows()
+                self.add_flows(query_result[2])
                 self.latest_query_result = query_result
             else:
                 if query_result != self.latest_query_result:
@@ -97,7 +97,7 @@ class QueueControll:
 
 
 if __name__ == '__main__':
-    queue_vlan = sys.argv[1]
+    queue_id = sys.argv[1]
     refresh_period = sys.argv[2]
 
     with open("config.json", "r") as config_file:
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
     queues_on_switch = QueueControll(config_params["car_switch_manage"], config_params["car_switch_control"], config_params["car_qos_uuid"],
                                      config_params["base_switch_manage"], config_params["base_switch_control"], config_params["base_qos_uuid"],
-                                     queue_vlan)
+                                     queue_id)
 
     try:
         while True:
@@ -121,8 +121,8 @@ if __name__ == '__main__':
             queues_on_switch.db_connection.close()
 
         if queues_on_switch.car_queue.queue_uuid is not None:
-            queues_on_switch.del_flows()
+            if queues_on_switch.latest_query_result is not None:
+                queues_on_switch.del_flows(queues_on_switch.latest_query_result[2])
             queues_on_switch.del_queues()
             
         print("Program terminated by user")
-
